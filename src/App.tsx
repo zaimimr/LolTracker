@@ -35,6 +35,8 @@ export default function ChampionTracker() {
   const [latestVersion, setLatestVersion] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
+  useAdSense();
+
   
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -109,7 +111,7 @@ export default function ChampionTracker() {
       setTimeout(() => {
         document.body.removeChild(notification);
       }, 2000);
-    } catch (error) {
+    } catch {
       const notification = document.createElement("div");
       notification.textContent = "Failed to copy to clipboard";
       notification.className =
@@ -144,7 +146,7 @@ export default function ChampionTracker() {
       setTimeout(() => {
         document.body.removeChild(notification);
       }, 2000);
-    } catch (error) {
+    } catch {
       const notification = document.createElement("div");
       notification.textContent = "Invalid JSON format";
       notification.className =
@@ -343,6 +345,17 @@ export default function ChampionTracker() {
         </div>
       )}
 
+      {/* Top Banner Ad - Only show when user has champions loaded */}
+      {champions.length > 0 && (
+        <div className="mb-6">
+          <AdBanner
+            slot={import.meta.env.VITE_ADSENSE_BANNER_SLOT || "1234567890"}
+            format="horizontal"
+            className="max-w-4xl mx-auto"
+          />
+        </div>
+      )}
+
       {/* Champion Search and Menu */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -425,43 +438,61 @@ export default function ChampionTracker() {
       </div>
 
       {/* Champion Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-        {filteredChampions.map((champ) => {
-          const isCompleted = currentSet
-            ? sets[currentSet]?.includes(champ.id)
-            : false;
-          return (
-            <div
-              key={champ.id}
-              className={`relative border-2 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
-                isCompleted
-                  ? "border-gray-700 bg-gray-800/30"
-                  : "border-gray-600 hover:border-blue-400"
-              }`}
-              onClick={() => toggleChampion(champ.id)}
-              title={champ.name}
-            >
-              <div className="aspect-[16/9] relative overflow-hidden rounded-md">
-                <img
-                  src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`}
-                  alt={champ.name}
-                  className={`w-full h-full object-cover transition-all duration-200 ${
-                    isCompleted ? "opacity-30 grayscale" : "opacity-100"
+      <div className="flex gap-6">
+        {/* Main Champion Grid */}
+        <div className="flex-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {filteredChampions.map((champ) => {
+              const isCompleted = currentSet
+                ? sets[currentSet]?.includes(champ.id)
+                : false;
+              return (
+                <div
+                  key={champ.id}
+                  className={`relative border-2 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
+                    isCompleted
+                      ? "border-gray-700 bg-gray-800/30"
+                      : "border-gray-600 hover:border-blue-400"
                   }`}
-                />
-              </div>
-              <div className="p-2">
-                <span
-                  className={`text-xs block text-center truncate ${
-                    isCompleted ? "text-gray-500" : "text-white"
-                  }`}
+                  onClick={() => toggleChampion(champ.id)}
+                  title={champ.name}
                 >
-                  {champ.name}
-                </span>
-              </div>
+                  <div className="aspect-[16/9] relative overflow-hidden rounded-md">
+                    <img
+                      src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`}
+                      alt={champ.name}
+                      className={`w-full h-full object-cover transition-all duration-200 ${
+                        isCompleted ? "opacity-30 grayscale" : "opacity-100"
+                      }`}
+                    />
+                  </div>
+                  <div className="p-2">
+                    <span
+                      className={`text-xs block text-center truncate ${
+                        isCompleted ? "text-gray-500" : "text-white"
+                      }`}
+                    >
+                      {champ.name}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Sidebar Ad - Only on larger screens with many champions */}
+        {champions.length > 30 && (
+          <div className="hidden xl:block w-64">
+            <div className="sticky top-4">
+              <AdBanner
+                slot={import.meta.env.VITE_ADSENSE_SIDEBAR_SLOT || "0987654321"}
+                format="vertical"
+                className="w-full"
+              />
             </div>
-          );
-        })}
+          </div>
+        )}
       </div>
 
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
@@ -582,9 +613,17 @@ export default function ChampionTracker() {
         </CommandList>
       </CommandDialog>
 
-      <footer className="mt-10 text-center text-sm opacity-70">
-        <div className="p-4 border-t">
-          Advertisement space here (non-intrusive)
+      {/* Footer Ad - Subtle and non-intrusive */}
+      <footer className="mt-16">
+        <div className="border-t border-gray-800 pt-8">
+          <AdBanner
+            slot={import.meta.env.VITE_ADSENSE_FOOTER_SLOT || "1122334455"}
+            format="horizontal"
+            className="max-w-3xl mx-auto opacity-80"
+          />
+          <div className="text-center text-sm text-gray-500 mt-4">
+            Support this free tool
+          </div>
         </div>
       </footer>
     </div>
