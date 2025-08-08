@@ -28,13 +28,14 @@ export default function ChampionTracker() {
     return stored ? JSON.parse(stored) : {};
   });
   const [currentSet, setCurrentSet] = useState<string | null>(null);
-  const [hideCompleted, setHideCompleted] = useState(false);
+  const [filterMode, setFilterMode] = useState<
+    "all" | "incomplete" | "complete"
+  >("all");
+  const [filterOpen, setFilterOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [latestVersion, setLatestVersion] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
-
-  
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -46,23 +47,23 @@ export default function ChampionTracker() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuOpen && !(e.target as Element).closest(".menu-dropdown")) {
         setMenuOpen(false);
       }
+      if (filterOpen && !(e.target as Element).closest(".filter-dropdown")) {
+        setFilterOpen(false);
+      }
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
-  }, [menuOpen]);
+  }, [menuOpen, filterOpen]);
 
-  
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sets));
   }, [sets]);
 
-  
   useEffect(() => {
     async function fetchChampions() {
       const versionRes = await fetch(
@@ -89,9 +90,17 @@ export default function ChampionTracker() {
   };
 
   const filteredChampions = champions.filter((champ) => {
-    if (hideCompleted && currentSet && sets[currentSet]?.includes(champ.id))
-      return false;
-    return champ.name.toLowerCase().includes(search.toLowerCase());
+    const isCompleted = currentSet && sets[currentSet]?.includes(champ.id);
+    const matchesSearch = champ.name
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (filterMode === "incomplete" && isCompleted) return false;
+    if (filterMode === "complete" && !isCompleted) return false;
+
+    return true;
   });
 
   const exportSet = async () => {
@@ -99,7 +108,7 @@ export default function ChampionTracker() {
     try {
       const dataStr = JSON.stringify(sets[currentSet], null, 2);
       await navigator.clipboard.writeText(dataStr);
-      
+
       const notification = document.createElement("div");
       notification.textContent = "Set copied to clipboard!";
       notification.className =
@@ -127,14 +136,13 @@ export default function ChampionTracker() {
 
     try {
       const parsed = JSON.parse(json);
-      
+
       if (!Array.isArray(parsed)) {
         throw new Error("Invalid format");
       }
 
       setSets({ ...sets, [currentSet]: parsed });
 
-      
       const notification = document.createElement("div");
       notification.textContent = "Set imported successfully!";
       notification.className =
@@ -164,7 +172,6 @@ export default function ChampionTracker() {
     }
   };
 
-  
   if (Object.keys(sets).length === 0) {
     return (
       <div className="dark bg-black text-white min-h-screen p-4 flex items-center justify-center">
@@ -189,8 +196,20 @@ export default function ChampionTracker() {
               }}
               className="mb-4"
             />
+            <Button
+              onClick={() => {
+                const setName = prompt("Enter set name:");
+                if (setName?.trim()) {
+                  setSets({ [setName.trim()]: [] });
+                  setCurrentSet(setName.trim());
+                }
+              }}
+              className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Create Set
+            </Button>
             <p className="text-sm text-gray-400">
-              Press Enter to create your first set and start tracking champions
+              Press Enter in the input field or use the button above
             </p>
           </div>
         </div>
@@ -198,7 +217,6 @@ export default function ChampionTracker() {
     );
   }
 
-  
   if (Object.keys(sets).length > 0 && !currentSet) {
     return (
       <div className="dark bg-black text-white min-h-screen p-4">
@@ -254,6 +272,24 @@ export default function ChampionTracker() {
                   </div>
                 );
               })}
+              {/* Create New Set Card */}
+              <div className="relative group rounded-lg border-2 border-dashed border-gray-600 bg-gray-800/30 hover:border-gray-500 hover:bg-gray-800/40 transition-all duration-200">
+                <button
+                  onClick={() => {
+                    const setName = prompt("Enter new set name:");
+                    if (setName?.trim()) {
+                      setSets({ ...sets, [setName.trim()]: [] });
+                      setCurrentSet(setName.trim());
+                    }
+                  }}
+                  className="w-full p-4 text-center flex flex-col items-center justify-center min-h-[80px]"
+                >
+                  <div className="text-2xl text-gray-500 mb-1">+</div>
+                  <span className="text-sm font-medium text-gray-400">
+                    Create New Set
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -327,6 +363,24 @@ export default function ChampionTracker() {
                 </div>
               );
             })}
+            {/* Create New Set Card */}
+            <div className="relative group rounded-lg border-2 border-dashed border-gray-600 bg-gray-800/30 hover:border-gray-500 hover:bg-gray-800/40 transition-all duration-200">
+              <button
+                onClick={() => {
+                  const setName = prompt("Enter new set name:");
+                  if (setName?.trim()) {
+                    setSets({ ...sets, [setName.trim()]: [] });
+                    setCurrentSet(setName.trim());
+                  }
+                }}
+                className="w-full p-3 text-center flex flex-col items-center justify-center min-h-[68px]"
+              >
+                <div className="text-xl text-gray-500 mb-0.5">+</div>
+                <span className="text-xs font-medium text-gray-400">
+                  New Set
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -342,85 +396,125 @@ export default function ChampionTracker() {
         </div>
       )}
 
-
       {/* Champion Search and Menu */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Search champions... (⌘K)"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64"
-          />
-          <Button onClick={() => setHideCompleted(!hideCompleted)}>
-            {hideCompleted ? "Show Complete" : "Hide Complete"}
-          </Button>
-        </div>
-        <div className="relative menu-dropdown">
-          <Button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="text-gray-400 hover:text-white"
-          >
-            ⋮
-          </Button>
-          {menuOpen && (
-            <div className="absolute right-0 mt-1 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
-              <div className="p-2">
-                <div className="mb-2">
-                  <Input
-                    placeholder="New Set Name"
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                      const target = e.target as HTMLInputElement;
-                      if (e.key === "Enter" && target.value.trim()) {
-                        setSets({ ...sets, [target.value.trim()]: [] });
-                        setCurrentSet(target.value.trim());
-                        target.value = "";
-                        setMenuOpen(false);
-                      }
-                    }}
-                    className="text-sm"
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex-1 max-w-md">
+            <Input
+              placeholder="Search champions... (⌘K)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative filter-dropdown">
+              <Button
+                onClick={() => setFilterOpen(!filterOpen)}
+                variant="outline"
+                size="sm"
+                className="border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300"
+              >
+                <svg
+                  className="w-4 h-4 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v4.172a1 1 0 01-.293.707l-2 2A1 1 0 0111 20.586V13.414a1 1 0 00-.293-.707L4.293 6.293A1 1 0 014 5.586V4z"
                   />
+                </svg>
+                Filter
+              </Button>
+              {filterOpen && (
+                <div className="absolute right-0 mt-1 w-40 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
+                  <div className="p-1">
+                    <button
+                      onClick={() => {
+                        setFilterMode("all");
+                        setFilterOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                        filterMode === "all"
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-300 hover:bg-gray-700"
+                      }`}
+                    >
+                      Show All
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterMode("incomplete");
+                        setFilterOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                        filterMode === "incomplete"
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-300 hover:bg-gray-700"
+                      }`}
+                    >
+                      Incomplete Only
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterMode("complete");
+                        setFilterOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                        filterMode === "complete"
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-300 hover:bg-gray-700"
+                      }`}
+                    >
+                      Complete Only
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <Button
-                    onClick={() => {
-                      const setName = prompt("Enter new set name:");
-                      if (setName?.trim()) {
-                        setSets({ ...sets, [setName.trim()]: [] });
-                        setCurrentSet(setName.trim());
-                      }
-                      setMenuOpen(false);
-                    }}
-                    className="text-left justify-start text-sm h-8"
-                  >
-                    Create New Set
-                  </Button>
-                  {currentSet && (
-                    <>
-                      <Button
-                        onClick={() => {
-                          exportSet();
-                          setMenuOpen(false);
-                        }}
-                        className="text-left justify-start text-sm h-8"
-                      >
-                        Export Current Set
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          importSet();
-                          setMenuOpen(false);
-                        }}
-                        className="text-left justify-start text-sm h-8"
-                      >
-                        Import to Current Set
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
-          )}
+            <div className="relative menu-dropdown">
+              <Button
+                onClick={() => setMenuOpen(!menuOpen)}
+                variant="outline"
+                size="sm"
+                className="border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
+              >
+                ⋮
+              </Button>
+              {menuOpen && (
+                <div className="absolute right-0 mt-1 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
+                  <div className="p-2">
+                    {currentSet && (
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          onClick={() => {
+                            exportSet();
+                            setMenuOpen(false);
+                          }}
+                          className="text-left justify-start text-sm h-8 bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                        >
+                          Export Current Set
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            importSet();
+                            setMenuOpen(false);
+                          }}
+                          className="text-left justify-start text-sm h-8 bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                        >
+                          Import to Current Set
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -467,69 +561,11 @@ export default function ChampionTracker() {
             })}
           </div>
         </div>
-
       </div>
 
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
         <CommandInput placeholder="Type to search or run commands..." />
         <CommandList>
-          {/* Actions Section */}
-          <div className="px-2 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
-            Actions
-          </div>
-          <CommandItem
-            onSelect={() => {
-              setHideCompleted(!hideCompleted);
-              setCommandOpen(false);
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span>
-                {hideCompleted
-                  ? "Show Completed Champions"
-                  : "Hide Completed Champions"}
-              </span>
-            </div>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => {
-              const setName = prompt("Enter new set name:");
-              if (setName?.trim()) {
-                setSets({ ...sets, [setName.trim()]: [] });
-                setCurrentSet(setName.trim());
-              }
-              setCommandOpen(false);
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span>Create New Set</span>
-            </div>
-          </CommandItem>
-          {currentSet && (
-            <>
-              <CommandItem
-                onSelect={() => {
-                  exportSet();
-                  setCommandOpen(false);
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span>Export Current Set</span>
-                </div>
-              </CommandItem>
-              <CommandItem
-                onSelect={() => {
-                  importSet();
-                  setCommandOpen(false);
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span>Import to Current Set</span>
-                </div>
-              </CommandItem>
-            </>
-          )}
-
           {/* Sets Section */}
           {Object.keys(sets).length > 0 && (
             <div className="px-2 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
@@ -587,7 +623,6 @@ export default function ChampionTracker() {
           ))}
         </CommandList>
       </CommandDialog>
-
     </div>
   );
 }
