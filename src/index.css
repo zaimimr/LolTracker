@@ -119,25 +119,3 @@
   }
 }
 
-/* Ad styling for better integration */
-.ad-container {
-  transition: opacity 0.3s ease-in-out;
-}
-
-.ad-container:hover {
-  opacity: 0.9;
-}
-
-/* Ensure ads don't break layout */
-.adsbygoogle {
-  display: block !important;
-  min-height: 100px;
-}
-
-/* Fallback for when ads don't load */
-.ad-container:empty::after {
-  content: '';
-  display: block;
-  height: 100px;
-  background: transparent;
-}

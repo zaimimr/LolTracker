@@ -7,8 +7,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { AdBanner } from "@/components/AdBanner";
-import { useAdSense } from "@/hooks/useAdSense";
 
 const STORAGE_KEY = "champion_sets";
 
@@ -35,7 +33,6 @@ export default function ChampionTracker() {
   const [latestVersion, setLatestVersion] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useAdSense();
 
   
   useEffect(() => {
@@ -345,16 +342,6 @@ export default function ChampionTracker() {
         </div>
       )}
 
-      {/* Top Banner Ad - Only show when user has champions loaded */}
-      {champions.length > 0 && (
-        <div className="mb-6">
-          <AdBanner
-            slot={import.meta.env.VITE_ADSENSE_BANNER_SLOT || "1234567890"}
-            format="horizontal"
-            className="max-w-4xl mx-auto"
-          />
-        </div>
-      )}
 
       {/* Champion Search and Menu */}
       <div className="mb-4 flex items-center justify-between">
@@ -481,18 +468,6 @@ export default function ChampionTracker() {
           </div>
         </div>
 
-        {/* Sidebar Ad - Only on larger screens with many champions */}
-        {champions.length > 30 && (
-          <div className="hidden xl:block w-64">
-            <div className="sticky top-4">
-              <AdBanner
-                slot={import.meta.env.VITE_ADSENSE_SIDEBAR_SLOT || "0987654321"}
-                format="vertical"
-                className="w-full"
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
@@ -613,19 +588,6 @@ export default function ChampionTracker() {
         </CommandList>
       </CommandDialog>
 
-      {/* Footer Ad - Subtle and non-intrusive */}
-      <footer className="mt-16">
-        <div className="border-t border-gray-800 pt-8">
-          <AdBanner
-            slot={import.meta.env.VITE_ADSENSE_FOOTER_SLOT || "1122334455"}
-            format="horizontal"
-            className="max-w-3xl mx-auto opacity-80"
-          />
-          <div className="text-center text-sm text-gray-500 mt-4">
-            Support this free tool
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
