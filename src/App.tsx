@@ -35,6 +35,7 @@ export default function ChampionTracker() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [latestVersion, setLatestVersion] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [newSetName, setNewSetName] = useState("");
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -79,6 +80,14 @@ export default function ChampionTracker() {
     }
     fetchChampions();
   }, []);
+
+  const createSet = (setName: string) => {
+    if (setName.trim()) {
+      setSets({ ...sets, [setName.trim()]: [] });
+      setCurrentSet(setName.trim());
+      setNewSetName("");
+    }
+  };
 
   const toggleChampion = (championId: string) => {
     if (!currentSet) return;
@@ -177,7 +186,7 @@ export default function ChampionTracker() {
       <div className="dark bg-black text-white min-h-screen p-4 flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">LoL Champion Tracker</h1>
+            <h1 className="text-3xl font-bold mb-2">LoL Champions Tracker</h1>
             <p className="text-gray-400 mb-8">
               Track your champion progress across different sets and goals
             </p>
@@ -186,25 +195,19 @@ export default function ChampionTracker() {
             <h2 className="text-xl mb-4">Create your first set</h2>
             <Input
               placeholder="Enter set name (e.g. 'Aram', 'S+ Rank', etc.)"
+              value={newSetName}
+              onChange={(e) => setNewSetName(e.target.value)}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                const target = e.target as HTMLInputElement;
-                if (e.key === "Enter" && target.value.trim()) {
-                  setSets({ [target.value.trim()]: [] });
-                  setCurrentSet(target.value.trim());
-                  target.value = "";
+                if (e.key === "Enter" && newSetName.trim()) {
+                  createSet(newSetName);
                 }
               }}
               className="mb-4"
             />
             <Button
-              onClick={() => {
-                const setName = prompt("Enter set name:");
-                if (setName?.trim()) {
-                  setSets({ [setName.trim()]: [] });
-                  setCurrentSet(setName.trim());
-                }
-              }}
-              className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => createSet(newSetName)}
+              disabled={!newSetName.trim()}
+              className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Create Set
             </Button>
@@ -240,7 +243,7 @@ export default function ChampionTracker() {
                     key={setName}
                     className="relative group rounded-lg border border-gray-700 bg-gray-800/50 hover:border-gray-600 transition-all duration-200"
                   >
-                    <button
+                    <div
                       onClick={() => setCurrentSet(setName)}
                       className="w-full p-4 text-left"
                     >
@@ -253,7 +256,7 @@ export default function ChampionTracker() {
                             e.stopPropagation();
                             deleteSet(setName);
                           }}
-                          className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
                           title={`Delete ${setName}`}
                         >
                           ×
@@ -268,7 +271,7 @@ export default function ChampionTracker() {
                           style={{ width: `${completionRate}%` }}
                         ></div>
                       </div>
-                    </button>
+                    </div>
                   </div>
                 );
               })}
@@ -278,8 +281,7 @@ export default function ChampionTracker() {
                   onClick={() => {
                     const setName = prompt("Enter new set name:");
                     if (setName?.trim()) {
-                      setSets({ ...sets, [setName.trim()]: [] });
-                      setCurrentSet(setName.trim());
+                      createSet(setName);
                     }
                   }}
                   className="w-full p-4 text-center flex flex-col items-center justify-center min-h-[80px]"
@@ -342,7 +344,7 @@ export default function ChampionTracker() {
                           e.stopPropagation();
                           deleteSet(setName);
                         }}
-                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
                         title={`Delete ${setName}`}
                       >
                         ×
@@ -369,8 +371,7 @@ export default function ChampionTracker() {
                 onClick={() => {
                   const setName = prompt("Enter new set name:");
                   if (setName?.trim()) {
-                    setSets({ ...sets, [setName.trim()]: [] });
-                    setCurrentSet(setName.trim());
+                    createSet(setName);
                   }
                 }}
                 className="w-full p-3 text-center flex flex-col items-center justify-center min-h-[68px]"
@@ -413,7 +414,7 @@ export default function ChampionTracker() {
                 onClick={() => setFilterOpen(!filterOpen)}
                 variant="outline"
                 size="sm"
-                className="border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300"
+                className="border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300 relative"
               >
                 <svg
                   className="w-4 h-4 mr-1"
@@ -429,6 +430,9 @@ export default function ChampionTracker() {
                   />
                 </svg>
                 Filter
+                {filterMode !== "all" && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full"></div>
+                )}
               </Button>
               {filterOpen && (
                 <div className="absolute right-0 mt-1 w-40 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
