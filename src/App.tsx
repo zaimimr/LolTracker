@@ -8,6 +8,8 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { getKeyboardShortcut } from "@/lib/utils";
+import { KofiButton } from "@/components/ui/kofi-button";
+import { AdBanner } from "@/components/ui/ad-banner";
 
 const STORAGE_KEY = "champion_sets";
 
@@ -533,40 +535,53 @@ export default function ChampionTracker() {
         {/* Main Champion Grid */}
         <div className="flex-1">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {filteredChampions.map((champ) => {
+            {filteredChampions.map((champ, index) => {
               const isCompleted = currentSet
                 ? sets[currentSet]?.includes(champ.id)
                 : false;
+
+              // Insert ad after every 18 champions
+              const showAd = (index + 1) % 18 === 0 && index < filteredChampions.length - 1;
+
               return (
-                <div
-                  key={champ.id}
-                  className={`relative border-2 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
-                    isCompleted
-                      ? "border-gray-700 bg-gray-800/30"
-                      : "border-gray-600 hover:border-blue-400"
-                  }`}
-                  onClick={() => toggleChampion(champ.id)}
-                  title={champ.name}
-                >
-                  <div className="aspect-[16/9] relative overflow-hidden rounded-md">
-                    <img
-                      src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`}
-                      alt={champ.name}
-                      className={`w-full h-full object-cover transition-all duration-200 ${
-                        isCompleted ? "opacity-30 grayscale" : "opacity-100"
-                      }`}
-                    />
+                <>
+                  <div
+                    key={champ.id}
+                    className={`relative border-2 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
+                      isCompleted
+                        ? "border-gray-700 bg-gray-800/30"
+                        : "border-gray-600 hover:border-blue-400"
+                    }`}
+                    onClick={() => toggleChampion(champ.id)}
+                    title={champ.name}
+                  >
+                    <div className="aspect-[16/9] relative overflow-hidden rounded-md">
+                      <img
+                        src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`}
+                        alt={champ.name}
+                        className={`w-full h-full object-cover transition-all duration-200 ${
+                          isCompleted ? "opacity-30 grayscale" : "opacity-100"
+                        }`}
+                      />
+                    </div>
+                    <div className="p-2">
+                      <span
+                        className={`text-xs block text-center truncate ${
+                          isCompleted ? "text-gray-500" : "text-white"
+                        }`}
+                      >
+                        {champ.name}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-2">
-                    <span
-                      className={`text-xs block text-center truncate ${
-                        isCompleted ? "text-gray-500" : "text-white"
-                      }`}
-                    >
-                      {champ.name}
-                    </span>
-                  </div>
-                </div>
+                  {showAd && (
+                    <div key={`ad-${index}`} className="relative border-2 border-blue-500/50 rounded-lg overflow-hidden bg-gray-900/50">
+                      <div className="aspect-[16/9] relative flex items-center justify-center">
+                        <AdBanner />
+                      </div>
+                    </div>
+                  )}
+                </>
               );
             })}
           </div>
@@ -633,7 +648,7 @@ export default function ChampionTracker() {
           ))}
         </CommandList>
       </CommandDialog>
-      
+
       {/* Footer */}
       <footer className="mt-12 py-8 border-t border-gray-800">
         <div className="max-w-4xl mx-auto px-4">
@@ -647,6 +662,7 @@ export default function ChampionTracker() {
               </p>
             </div>
             <div className="flex items-center gap-4">
+              <KofiButton username="zaimimr" />
               <a
                 href="https://github.com/zaimimr"
                 target="_blank"
