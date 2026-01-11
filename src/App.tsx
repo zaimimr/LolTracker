@@ -240,65 +240,48 @@ export default function ChampionTracker() {
               </p>
             </div>
 
-            {/* Top Banner Ad */}
-            <div className="mb-6 max-w-2xl mx-auto">
-              <AdBanner />
-            </div>
-
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {Object.keys(sets).map((setName, index) => {
+              {Object.keys(sets).map((setName) => {
                 const completedCount = (sets[setName] || []).length;
                 const completionRate =
                   champions.length > 0
                     ? (completedCount / champions.length) * 100
                     : 0;
-                const showAd = (index + 1) % 6 === 0 && index < Object.keys(sets).length - 1;
-
                 return (
-                  <>
+                  <div
+                    key={setName}
+                    className="relative group rounded-lg border border-gray-700 bg-gray-800/50 hover:border-gray-600 transition-all duration-200"
+                  >
                     <div
-                      key={setName}
-                      className="relative group rounded-lg border border-gray-700 bg-gray-800/50 hover:border-gray-600 transition-all duration-200"
+                      onClick={() => setCurrentSet(setName)}
+                      className="w-full p-4 text-left"
                     >
-                      <div
-                        onClick={() => setCurrentSet(setName)}
-                        className="w-full p-4 text-left"
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium truncate text-white">
-                            {setName}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteSet(setName);
-                            }}
-                            className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
-                            title={`Delete ${setName}`}
-                          >
-                            ×
-                          </button>
-                        </div>
-                        <div className="text-xs text-gray-400 mb-2">
-                          {completedCount} / {champions.length} champions
-                        </div>
-                        <div className="w-full bg-gray-700 rounded-full h-1">
-                          <div
-                            className="h-1 rounded-full transition-all duration-300 bg-gray-500"
-                            style={{ width: `${completionRate}%` }}
-                          ></div>
-                        </div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium truncate text-white">
+                          {setName}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteSet(setName);
+                          }}
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
+                          title={`Delete ${setName}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className="text-xs text-gray-400 mb-2">
+                        {completedCount} / {champions.length} champions
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-1">
+                        <div
+                          className="h-1 rounded-full transition-all duration-300 bg-gray-500"
+                          style={{ width: `${completionRate}%` }}
+                        ></div>
                       </div>
                     </div>
-                    {showAd && (
-                      <div
-                        key={`ad-${index}`}
-                        className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 border-2 border-blue-500/50 rounded-lg overflow-hidden bg-gray-900/50 p-4"
-                      >
-                        <AdBanner />
-                      </div>
-                    )}
-                  </>
+                  </div>
                 );
               })}
               {/* Create New Set Card */}
@@ -320,10 +303,6 @@ export default function ChampionTracker() {
               </div>
             </div>
 
-            {/* Bottom Banner Ad */}
-            <div className="mt-6 max-w-2xl mx-auto">
-              <AdBanner />
-            </div>
           </div>
         </div>
       </div>
