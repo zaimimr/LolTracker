@@ -30,7 +30,12 @@ export default function ChampionTracker() {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {};
   });
-  const [currentSet, setCurrentSet] = useState<string | null>(null);
+  const [currentSet, setCurrentSet] = useState<string | null>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const parsedSets = stored ? JSON.parse(stored) : {};
+    const setNames = Object.keys(parsedSets);
+    return setNames.length > 0 ? setNames[0] : null;
+  });
   const [filterMode, setFilterMode] = useState<
     "all" | "incomplete" | "complete"
   >("all");
@@ -38,7 +43,6 @@ export default function ChampionTracker() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [latestVersion, setLatestVersion] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [newSetName, setNewSetName] = useState("");
   const [shortcutText, setShortcutText] = useState("⌘K");
 
   useEffect(() => {
@@ -93,7 +97,6 @@ export default function ChampionTracker() {
     if (setName.trim()) {
       setSets({ ...sets, [setName.trim()]: [] });
       setCurrentSet(setName.trim());
-      setNewSetName("");
     }
   };
 
@@ -189,136 +192,16 @@ export default function ChampionTracker() {
     }
   };
 
-  if (Object.keys(sets).length === 0) {
-    return (
-      <div className="dark bg-black text-white min-h-screen p-4 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">League of Legends Champion Tracker</h1>
-            <p className="text-gray-400 mb-8">
-              The ultimate tool for LoL players to track completed champions across different sets and goals. Perfect for ARAM challenges, Arena God goals, ranked climbing, mastery objectives, and champion completion tracking.
-            </p>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h2 className="text-xl mb-4">Create Your First Champion Set</h2>
-            <Input
-              placeholder="Enter set name (e.g. 'ARAM Masters', 'Arena God', 'S+ Ranked', 'Mastery 7', etc.)"
-              value={newSetName}
-              onChange={(e) => setNewSetName(e.target.value)}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === "Enter" && newSetName.trim()) {
-                  createSet(newSetName);
-                }
-              }}
-              className="mb-4"
-            />
-            <Button
-              onClick={() => createSet(newSetName)}
-              disabled={!newSetName.trim()}
-              className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Create Set
-            </Button>
-            <p className="text-sm text-gray-400">
-              Create custom sets to track your League of Legends champion progress. Press Enter or use the button above to get started.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (Object.keys(sets).length > 0 && !currentSet) {
-    return (
-      <div className="dark bg-black text-white min-h-screen p-4">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center max-w-4xl w-full">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Select a Champion Set</h1>
-              <p className="text-gray-400">
-                Choose a set to start tracking your League of Legends champion progress and completion goals
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {Object.keys(sets).map((setName) => {
-                const completedCount = (sets[setName] || []).length;
-                const completionRate =
-                  champions.length > 0
-                    ? (completedCount / champions.length) * 100
-                    : 0;
-                return (
-                  <div
-                    key={setName}
-                    className="relative group rounded-lg border border-gray-700 bg-gray-800/50 hover:border-gray-600 transition-all duration-200"
-                  >
-                    <div
-                      onClick={() => setCurrentSet(setName)}
-                      className="w-full p-4 text-left"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium truncate text-white">
-                          {setName}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteSet(setName);
-                          }}
-                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
-                          title={`Delete ${setName}`}
-                        >
-                          ×
-                        </button>
-                      </div>
-                      <div className="text-xs text-gray-400 mb-2">
-                        {completedCount} / {champions.length} champions
-                      </div>
-                      <div className="w-full bg-gray-700 rounded-full h-1">
-                        <div
-                          className="h-1 rounded-full transition-all duration-300 bg-gray-500"
-                          style={{ width: `${completionRate}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              {/* Create New Set Card */}
-              <div className="relative group rounded-lg border-2 border-dashed border-gray-600 bg-gray-800/30 hover:border-gray-500 hover:bg-gray-800/40 transition-all duration-200">
-                <button
-                  onClick={() => {
-                    const setName = prompt("Enter new set name:");
-                    if (setName?.trim()) {
-                      createSet(setName);
-                    }
-                  }}
-                  className="w-full p-4 text-center flex flex-col items-center justify-center min-h-[80px]"
-                >
-                  <div className="text-2xl text-gray-500 mb-1">+</div>
-                  <span className="text-sm font-medium text-gray-400">
-                    Create New Set
-                  </span>
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="dark bg-black text-white min-h-screen p-4">
       {/* Set Selection at Top */}
-      {Object.keys(sets).length > 0 && (
-        <div className="mb-6">
-          <div className="mb-3">
-            <h3 className="text-sm text-gray-400 uppercase tracking-wide">
-              Sets
-            </h3>
-          </div>
+      <div className="mb-6">
+        <div className="mb-3">
+          <h3 className="text-sm text-gray-400 uppercase tracking-wide">
+            Sets
+          </h3>
+        </div>
+        {Object.keys(sets).length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
             {Object.keys(sets).map((setName) => {
               const completedCount = (sets[setName] || []).length;
@@ -392,6 +275,33 @@ export default function ChampionTracker() {
                 </span>
               </button>
             </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+            <p className="text-gray-400 text-sm">Create a set to start tracking your champion progress</p>
+            <Button
+              onClick={() => {
+                const setName = prompt("Enter set name:");
+                if (setName?.trim()) {
+                  createSet(setName);
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Create Set
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Top Ad - Only shows with sufficient content */}
+      {currentSet &&
+       search === "" &&
+       filterMode === "all" &&
+       champions.length >= 100 && (
+        <div className="mb-6 flex justify-center">
+          <div className="w-full max-w-3xl">
+            <AdBanner slot="6963866073" />
           </div>
         </div>
       )}
@@ -537,58 +447,58 @@ export default function ChampionTracker() {
         {/* Main Champion Grid */}
         <div className="flex-1">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {filteredChampions.map((champ, index) => {
+            {filteredChampions.map((champ) => {
               const isCompleted = currentSet
                 ? sets[currentSet]?.includes(champ.id)
                 : false;
 
-              // Insert ad after every 18 champions
-              const showAd = (index + 1) % 18 === 0 && index < filteredChampions.length - 1;
-
               return (
-                <>
-                  <div
-                    key={champ.id}
-                    className={`relative border-2 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
-                      isCompleted
-                        ? "border-gray-700 bg-gray-800/30"
-                        : "border-gray-600 hover:border-blue-400"
-                    }`}
-                    onClick={() => toggleChampion(champ.id)}
-                    title={champ.name}
-                  >
-                    <div className="aspect-[16/9] relative overflow-hidden rounded-md">
-                      <img
-                        src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`}
-                        alt={champ.name}
-                        className={`w-full h-full object-cover transition-all duration-200 ${
-                          isCompleted ? "opacity-30 grayscale" : "opacity-100"
-                        }`}
-                      />
-                    </div>
-                    <div className="p-2">
-                      <span
-                        className={`text-xs block text-center truncate ${
-                          isCompleted ? "text-gray-500" : "text-white"
-                        }`}
-                      >
-                        {champ.name}
-                      </span>
-                    </div>
+                <div
+                  key={champ.id}
+                  className={`relative border-2 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${
+                    isCompleted
+                      ? "border-gray-700 bg-gray-800/30"
+                      : "border-gray-600 hover:border-blue-400"
+                  }`}
+                  onClick={() => toggleChampion(champ.id)}
+                  title={champ.name}
+                >
+                  <div className="aspect-[16/9] relative overflow-hidden rounded-md">
+                    <img
+                      src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`}
+                      alt={champ.name}
+                      className={`w-full h-full object-cover transition-all duration-200 ${
+                        isCompleted ? "opacity-30 grayscale" : "opacity-100"
+                      }`}
+                    />
                   </div>
-                  {showAd && (
-                    <div key={`ad-${index}`} className="relative border-2 border-blue-500/50 rounded-lg overflow-hidden bg-gray-900/50">
-                      <div className="aspect-[16/9] relative flex items-center justify-center">
-                        <AdBanner />
-                      </div>
-                    </div>
-                  )}
-                </>
+                  <div className="p-2">
+                    <span
+                      className={`text-xs block text-center truncate ${
+                        isCompleted ? "text-gray-500" : "text-white"
+                      }`}
+                    >
+                      {champ.name}
+                    </span>
+                  </div>
+                </div>
               );
             })}
           </div>
         </div>
       </div>
+
+      {/* Ad Section - Only shows with sufficient content (no filters, no search, full champion list) */}
+      {currentSet &&
+       search === "" &&
+       filterMode === "all" &&
+       filteredChampions.length >= 100 && (
+        <div className="mt-8 flex justify-center">
+          <div className="w-full max-w-4xl">
+            <AdBanner slot="6963866073" />
+          </div>
+        </div>
+      )}
 
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
         <CommandInput placeholder="Type to search or run commands..." />
@@ -654,6 +564,17 @@ export default function ChampionTracker() {
       {/* Footer */}
       <footer className="mt-12 py-8 border-t border-gray-800">
         <div className="max-w-4xl mx-auto px-4">
+          {/* Footer Ad - Only shows with sufficient content */}
+          {currentSet &&
+           search === "" &&
+           filterMode === "all" &&
+           filteredChampions.length >= 100 && (
+            <div className="mb-8 flex justify-center">
+              <div className="w-full">
+                <AdBanner slot="6963866073" />
+              </div>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-center sm:text-left">
               <p className="text-gray-400 text-sm">
