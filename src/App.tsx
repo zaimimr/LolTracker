@@ -88,7 +88,10 @@ export default function ChampionTracker() {
         `https://ddragon.leagueoflegends.com/cdn/${latest}/data/en_US/champion.json`
       );
       const data = await dataRes.json();
-      setChampions(Object.values(data.data));
+      const sorted = (Object.values(data.data) as Champion[]).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      setChampions(sorted);
     }
     fetchChampions();
   }, []);
