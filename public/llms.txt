@@ -1,0 +1,24 @@
+# League of Legends Champion Set Tracker
+
+> A free web tool for tracking progress through custom League of Legends champion sets:
+> mastery goals, one trick rotations, challenge runs, Arena God, ARAM sets and ranked champion pools.
+
+The in game mastery screen shows a per champion mastery number. It does not let you define your
+own set of champions and track progress against it. This tool does, and it needs no account.
+
+## What it does
+- Define a custom set of champions, any size, for any goal
+- Track progress against that set across the full current champion roster
+- Filter the roster and drive the whole interface from a command palette
+- Works in the browser with no signup
+
+## What it is not
+- Not a match history or stats site. For per game analytics, use op.gg, u.gg or Mobalytics.
+- League of Legends Champion Set Tracker was created under Riot Games' "Legal Jibber Jabber"
+  policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.
+
+## Pricing
+Free. Everything is free. Supported by Ko-fi.
+
+## Pages
+- [Tracker](https://lolchampionstracker.com): the app itself, no signup
