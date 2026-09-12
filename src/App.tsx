@@ -584,7 +584,9 @@ export default function ChampionTracker() {
                 © {new Date().getFullYear()} League of Legends Champion Tracker. All rights reserved.
               </p>
               <p className="text-gray-500 text-xs mt-1">
-                League of Legends is a trademark of Riot Games, Inc.
+                League of Legends Champion Set Tracker was created under Riot Games' "Legal Jibber
+                Jabber" policy using assets owned by Riot Games. Riot Games does not endorse or
+                sponsor this project.
               </p>
             </div>
             <div className="flex items-center gap-4">
