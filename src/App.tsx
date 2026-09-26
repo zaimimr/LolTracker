@@ -315,7 +315,9 @@ export default function ChampionTracker() {
           <h2 className="text-xl mb-2">Current Set: {currentSet}</h2>
           <div className="text-sm text-gray-400">
             Champion Progress: {(sets[currentSet] || []).length} / {champions.length}{" "}
-            champions completed ({Math.round(((sets[currentSet] || []).length / champions.length) * 100)}%)
+            champions completed ({champions.length > 0
+              ? Math.round(((sets[currentSet] || []).length / champions.length) * 100)
+              : 0}%)
           </div>
         </div>
       )}
